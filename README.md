@@ -65,3 +65,12 @@ Multiple pre-built programs can run alongside one custom challenge. Use the acti
 `npm test` (nine tests), `npm run lint`, and `npm run build` pass locally. The PGlite suite executes every migration in order and models Supabase's hosted default function grants. It checks authenticated draft and program flows, settings, timezone dates, anonymous access denial, threshold math, immediate streak credit, reward idempotency, habit locking, resets, history, Day 21 outcomes, retry, RLS isolation, shop debits, and cosmetic ownership checks.
 
 The October 4 release audit verified live sign-in, authenticated database flows, schema parity, hourly job execution, error recovery, and responsive screens at 1440px, 390px, and 320px. See [release readiness](docs/release-readiness.md) for fixes, evidence, and the remaining checks on the final deployment domain. Notification preferences are stored; outbound reminder delivery is not configured. Avatar uploads and Realtime are not enabled.
+## Android browser installation
+
+LockIn can be installed from the sign-in page or Settings using **Install on Android**. Serve the production build over HTTPS (localhost also works for development). The button opens the native browser prompt when available and otherwise shows instructions for Chrome’s **Add to home screen / Install app** menu.
+
+The web manifest and 192px/512px icons are included in `public/` and copied into `dist/` by the build. Configure hosting to serve these static files and fall back to `index.html` for app routes such as `/dashboard`. Installation adds a standalone home-screen app; LockIn still requires an internet connection. Verify the actual installation on Android Chrome after deployment, including dismissing the prompt and launching from the home-screen icon.
+
+## GitHub Pages
+
+The Actions workflow builds and publishes `dist/` to `/LockIn/`. Pages must use GitHub Actions as its source. Repository variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` supply the public browser client configuration; never use a service-role or secret key. `VITE_BASE_PATH` controls the asset paths and router basename. The build copies the app entry to `404.html` so direct visits to client routes can load the app (Pages returns HTTP 404 on those first document requests).

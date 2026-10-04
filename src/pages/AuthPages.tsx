@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { InstallApp } from "../components/InstallApp";
 import { Link, useNavigate } from "react-router-dom";
 import { LockKeyhole } from "lucide-react";
 import { useAuth } from "../app/AuthProvider";
@@ -113,6 +114,7 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
               {signup ? "Sign in" : "Create account"}
             </Link>
           </div>
+          <InstallApp />
         </form>
       </div>
     </div>

@@ -799,6 +799,14 @@ p { line-height: 1.65; }
 .challenge-selector select { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--paper); font: inherit; }
 
 /* Settings */
+.install-app { display: grid; gap: 14px; min-width: 0; }
+.auth-form .install-app { margin-top: 8px; padding-top: 22px; border-top: 1px solid var(--line); }
+.install-app-heading { display: flex; align-items: center; gap: 10px; }
+.install-app-heading svg { flex-shrink: 0; color: var(--blue); }
+.install-app p { margin: 0; color: var(--slate); font-size: .8rem; line-height: 1.6; }
+.install-app .button { justify-self: start; }
+.install-app-help { padding: 15px; border: 1px solid var(--line); border-radius: 12px; }
+.install-app-help ol { padding-left: 20px; font-size: .8rem; line-height: 1.7; }
 .settings-nav-link { margin-top: 15px; border-top: 1px solid #303650; border-radius: 0 0 13px 13px; padding-top: 10px; }
 .settings-page { display: grid; gap: 22px; }
 .settings-page .page-head { margin-bottom: 0; }

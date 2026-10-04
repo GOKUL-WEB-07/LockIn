@@ -5,6 +5,7 @@ import { useAuth } from "../app/AuthProvider";
 import { Button, Loading, Message, PageHead, Panel } from "../components/ui";
 import { ROUTES } from "../constants/domain";
 import { authApi, catalogApi } from "../services/api";
+import { InstallApp } from "../components/InstallApp";
 
 type Preferences = Awaited<ReturnType<typeof catalogApi.preferences>>;
 
@@ -57,6 +58,7 @@ export function SettingsPage() {
     {notice && <Message tone="success">{notice}</Message>}
     <div className="settings-grid">
       <div className="settings-column">
+        <Panel className="settings-panel settings-section"><InstallApp /></Panel>
         <Panel className="settings-panel settings-section">
           <div className="settings-heading"><span><UserRound size={20} /></span><div><h2>Your details</h2><p>How your name appears throughout LockIn.</p></div></div>
           <form onSubmit={(event) => {
