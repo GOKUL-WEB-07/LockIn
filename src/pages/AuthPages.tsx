@@ -19,6 +19,7 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const signup = mode === "signup";
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (busy) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -33,8 +34,13 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
         navigate(ROUTES.dashboard);
       }
     } catch (cause) {
+      const code = cause && typeof cause === "object" && "code" in cause ? cause.code : undefined;
       setError(
-        cause instanceof Error
+        code === "over_email_send_rate_limit" || (cause instanceof Error && /email rate limit exceeded/i.test(cause.message))
+          ? "We can’t send a confirmation email right now because the email service has reached its limit. Please try again later. If you already confirmed an account, you can sign in."
+          : code === "over_request_rate_limit"
+          ? "Too many attempts. Please wait a few minutes before trying again."
+          : cause instanceof Error
           ? cause.message
           : "Could not continue. Try again.",
       );

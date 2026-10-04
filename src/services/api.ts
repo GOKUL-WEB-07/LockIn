@@ -27,8 +27,17 @@ export const authApi = {
     if (error) throw error;
     return data;
   },
-  signUp: async (email: string, password: string) =>
-    dataOrThrow(await db().auth.signUp({ email, password })),
+  signUp: async (email: string, password: string) => {
+    const { data, error } = await db().auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: new URL(import.meta.env.BASE_URL, window.location.origin).href,
+      },
+    });
+    if (error) throw error;
+    return data;
+  },
   signOut: async () => {
     const { error } = await db().auth.signOut();
     if (error) throw error;

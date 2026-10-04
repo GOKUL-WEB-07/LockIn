@@ -74,3 +74,7 @@ The web manifest and 192px/512px icons are included in `public/` and copied into
 ## GitHub Pages
 
 The Actions workflow builds and publishes `dist/` to `/LockIn/`. Pages must use GitHub Actions as its source. Repository variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` supply the public browser client configuration; never use a service-role or secret key. `VITE_BASE_PATH` controls the asset paths and router basename. The build copies the app entry to `404.html` so direct visits to client routes can load the app (Pages returns HTTP 404 on those first document requests).
+
+## Signup email delivery
+
+Hosted Supabase email confirmation uses the project's email provider. The built-in provider allows only two emails per hour across the project and restricts recipients; configure custom SMTP before public signup. In Authentication → Emails → SMTP Settings, enter your provider's host, port, username, password, and verified sender. Set an appropriate email rate limit after connecting the provider. Keep credentials in Supabase, never in this repository or Vite variables. The hosted Site URL should be `https://gokul-web-07.github.io/LockIn/`; signup requests use the deployment base URL as their confirmation destination. Local `supabase/config.toml` settings do not change hosted Auth settings.
