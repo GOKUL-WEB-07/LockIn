@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.local
+*.local
+coverage/
+supabase/.temp/
+.playwright-cli/
+output/playwright/
+output/screenshots/
