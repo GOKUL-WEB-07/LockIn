@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { InstallApp } from "../components/InstallApp";
 import { Link, useNavigate } from "react-router-dom";
-import { LockKeyhole } from "lucide-react";
+import { BrandMark } from "../components/BrandMark";
 import { useAuth } from "../app/AuthProvider";
 import { ROUTES } from "../constants/domain";
 import { authApi } from "../services/api";
@@ -52,9 +52,7 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
     <div className="auth-layout">
       <div className="auth-intro">
         <div className="brand brand-light">
-          <span className="brand-mark">
-            <LockKeyhole size={17} strokeWidth={2.2} />
-          </span>
+          <BrandMark />
           LockIn<span className="brand-period">.</span>
         </div>
         <div>
@@ -74,9 +72,7 @@ export function AuthPage({ mode }: { mode: "login" | "signup" }) {
       <div className="auth-form-wrap">
         <form className="auth-form" onSubmit={submit}>
           <div className="auth-mobile-brand brand">
-            <span className="brand-mark">
-              <LockKeyhole size={17} strokeWidth={2.2} />
-            </span>
+            <BrandMark />
             LockIn<span className="brand-period">.</span>
           </div>
           <h2>{signup ? "Create your account" : "Welcome back"}</h2>

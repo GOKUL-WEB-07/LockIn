@@ -3,6 +3,7 @@ import type {
   InputHTMLAttributes,
   ReactNode,
 } from "react";
+import { BrandMark } from "./BrandMark";
 
 export function Button({
   children,
@@ -92,6 +93,14 @@ export function Loading({ label = "Loading your space…" }: { label?: string })
       <div className="skeleton skeleton-card" />
       <div className="skeleton skeleton-row" />
       <div className="skeleton skeleton-row" />
+    </div>
+  );
+}
+export function SplashScreen() {
+  return (
+    <div className="splash-screen" role="status" aria-label="Loading LockIn">
+      <BrandMark className="splash-mark" />
+      <span className="sr-only">Loading LockIn</span>
     </div>
   );
 }

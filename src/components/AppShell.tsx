@@ -5,13 +5,12 @@ import {
   CheckSquare,
   Compass,
   LayoutDashboard,
-  LockKeyhole,
-  ShoppingBag,
   Settings,
   UserRound,
 } from "lucide-react";
 import { useAuth } from "../app/AuthProvider";
 import { ProfileBadge } from "./CosmeticArt";
+import { BrandMark } from "./BrandMark";
 import { ROUTES } from "../constants/domain";
 
 const links = [
@@ -19,7 +18,6 @@ const links = [
   { to: ROUTES.tracker, label: "Tracker", Icon: CalendarDays },
   { to: ROUTES.checklist, label: "Checklist", Icon: CheckSquare },
   { to: ROUTES.prebuilt, label: "Pre-built", Icon: Compass },
-  { to: ROUTES.store, label: "Store", Icon: ShoppingBag },
   { to: ROUTES.profile, label: "Profile", Icon: UserRound },
 ];
 
@@ -30,9 +28,7 @@ export function AppShell() {
     <div className="app-shell dark-shell">
       <aside className="sidebar">
         <NavLink className="brand" to={ROUTES.dashboard}>
-          <span className="brand-mark">
-            <LockKeyhole size={17} strokeWidth={2.2} />
-          </span>
+          <BrandMark />
           <span>
             LockIn<span className="brand-period">.</span>
           </span>
@@ -67,9 +63,7 @@ export function AppShell() {
       <div className="main-area">
         <header className="mobile-header">
           <NavLink className="brand" to={ROUTES.dashboard}>
-            <span className="brand-mark">
-              <LockKeyhole size={17} strokeWidth={2.2} />
-            </span>
+            <BrandMark />
             <span>
               LockIn<span className="brand-period">.</span>
             </span>

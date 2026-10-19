@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
-import { Button, Loading, Message } from "../components/ui";
+import { Button, Message, SplashScreen } from "../components/ui";
 import { useAuth } from "./AuthProvider";
 import { ROUTES } from "../constants/domain";
 import { AuthPage, OnboardingPage } from "../pages/AuthPages";
@@ -17,7 +18,7 @@ import { SettingsPage } from "../pages/SettingsPage";
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, profile, profileError, loading, refreshProfile } = useAuth();
   const location = useLocation();
-  if (loading || (user && !profile && !profileError)) return <Loading />;
+  if (loading || (user && !profile && !profileError)) return <SplashScreen />;
   if (profileError)
     return (
       <div className="route-error">
@@ -38,7 +39,7 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 function Public({ children }: { children: React.ReactNode }) {
   const { user, profile, profileError, loading } = useAuth();
-  if (loading || (user && !profile && !profileError)) return <Loading />;
+  if (loading || (user && !profile && !profileError)) return <SplashScreen />;
   if (profileError)
     return (
       <Message tone="error">
@@ -58,6 +59,9 @@ function Public({ children }: { children: React.ReactNode }) {
 }
 
 export function AppRouter() {
+  useEffect(() => {
+    document.getElementById("boot-splash")?.remove();
+  }, []);
   return (
     <Routes>
       <Route path="/" element={<Navigate to={ROUTES.dashboard} replace />} />
