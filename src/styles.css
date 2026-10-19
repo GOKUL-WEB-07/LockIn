@@ -101,7 +101,7 @@ p { line-height: 1.65; }
 .sidebar .brand { margin: 2px 11px 67px; }
 .brand-mark { display: block; width: 25px; height: 34px; flex-shrink: 0; object-fit: contain; }
 .splash-screen { display: grid; place-items: center; min-height: 100dvh; background: #111526; }
-.splash-mark { width: 100px; height: 136px; }
+.splash-mark { display: block; width: 160px; height: 160px; object-fit: contain; }
 .brand-period { color: var(--blue); }
 .nav-caption { padding: 0 16px; margin-bottom: 13px; color: var(--muted); font-size: .72rem; font-weight: 800; }
 .side-nav { display: grid; gap: 4px; }

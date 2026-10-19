@@ -3,7 +3,7 @@ import type {
   InputHTMLAttributes,
   ReactNode,
 } from "react";
-import { BrandMark } from "./BrandMark";
+import outlineMark from "../assets/lock-mark-outline.png";
 
 export function Button({
   children,
@@ -99,7 +99,7 @@ export function Loading({ label = "Loading your space…" }: { label?: string })
 export function SplashScreen() {
   return (
     <div className="splash-screen" role="status" aria-label="Loading LockIn">
-      <BrandMark className="splash-mark" />
+      <img className="splash-mark" src={outlineMark} alt="" aria-hidden="true" />
       <span className="sr-only">Loading LockIn</span>
     </div>
   );
