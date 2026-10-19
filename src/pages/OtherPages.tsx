@@ -6,12 +6,15 @@ import {
   Coins,
   Compass,
   LockKeyhole,
+  Pencil,
   ShoppingBag,
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "../app/AuthProvider";
 import { useChallengeSelection } from "../hooks/useChallenge";
 import { ProfileBadge, StorePreview } from "../components/CosmeticArt";
+import { BrandMark } from "../components/BrandMark";
+import { themeKind } from "../constants/store";
 import {
   Button,
   Empty,
@@ -208,7 +211,7 @@ export function PrebuiltPage() {
 }
 
 export function ProfilePage() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [stats, setStats] = useState<{
     completedChallenges: number;
     completedDays: number;
@@ -216,12 +219,67 @@ export function ProfilePage() {
     rewards: { event_type: string; coins: number; created_at: string }[];
   } | null>(null);
   const [error, setError] = useState("");
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [reload, setReload] = useState(0);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [appearanceItems, setAppearanceItems] = useState<ShopItem[]>([]);
+  const [ownedAppearanceIds, setOwnedAppearanceIds] = useState<string[]>([]);
+  const [appearanceLoading, setAppearanceLoading] = useState(true);
+  const [appearanceError, setAppearanceError] = useState("");
+  const [appearanceNotice, setAppearanceNotice] = useState("");
+  const [appearanceBusy, setAppearanceBusy] = useState(false);
+  const [appearanceReload, setAppearanceReload] = useState(0);
   useEffect(() => {
+    let active = true;
+    setLoadingStats(true);
+    setError("");
     void catalogApi
       .profileStats()
-      .then(setStats)
-      .catch((cause) => setError(cause.message));
-  }, []);
+      .then((value) => { if (active) setStats(value); })
+      .catch((cause) => {
+        if (!active) return;
+        setStats(null);
+        setError(cause instanceof Error ? cause.message : "Could not load profile statistics.");
+      })
+      .finally(() => { if (active) setLoadingStats(false); });
+    return () => { active = false; };
+  }, [reload]);
+  useEffect(() => {
+    let active = true;
+    setAppearanceLoading(true);
+    setAppearanceError("");
+    void Promise.all([catalogApi.shop(), catalogApi.owned()])
+      .then(([shop, owned]) => {
+        if (!active) return;
+        setAppearanceItems(shop);
+        setOwnedAppearanceIds(owned.map((item) => item.shop_item_id));
+      })
+      .catch((cause) => {
+        if (active) setAppearanceError(cause instanceof Error ? cause.message : "Could not load your collection.");
+      })
+      .finally(() => { if (active) setAppearanceLoading(false); });
+    return () => { active = false; };
+  }, [appearanceReload]);
+
+  async function setAppearance(id: string | null, category: "THEME" | "PROFILE") {
+    if (appearanceBusy) return;
+    setAppearanceBusy(true);
+    setAppearanceError("");
+    setAppearanceNotice("");
+    try {
+      if (category === "THEME") await catalogApi.setTheme(id);
+      else await catalogApi.setCosmetic(id, "PROFILE");
+      await refreshProfile();
+      setAppearanceNotice(category === "THEME" ? "Profile banner updated." : id ? "Badge equipped." : "Badge removed.");
+    } catch (cause) {
+      setAppearanceError(cause instanceof Error ? cause.message : "Could not update your appearance.");
+    } finally {
+      setAppearanceBusy(false);
+    }
+  }
+
+  const ownedThemes = appearanceItems.filter((item) => item.category === "THEME" && ownedAppearanceIds.includes(item.id));
+  const ownedBadges = appearanceItems.filter((item) => item.category === "PROFILE" && ownedAppearanceIds.includes(item.id));
   return (
     <>
       <PageHead
@@ -230,26 +288,89 @@ export function ProfilePage() {
         action={<Link className="button button-secondary" to={ROUTES.settings}>Open settings</Link>}
       />
       {error && <Message tone="error">{error}</Message>}
+      {error && <Button variant="secondary" onClick={() => setReload((value) => value + 1)}>Retry statistics</Button>}
       <div className="profile-layout">
         <div className="profile-main">
           <Panel className="profile-card">
-            <div className="profile-identity">
-              <span className="profile-avatar">
-                {profile?.display_name.charAt(0).toUpperCase() || "L"}
-                <ProfileBadge id={profile?.selected_profile_item_id} />
-              </span>
-              <div>
-                <h2>{profile?.display_name}</h2>
-                <p>Your LockIn space</p>
-              </div>
+            <div className={`profile-banner store-preview-${themeKind(profile?.selected_theme)}`} aria-label="Your selected profile banner">
+              <span className="profile-banner-orbit" aria-hidden="true" />
+              <BrandMark className="profile-banner-mark" />
+              <span>Your LockIn space</span>
             </div>
-            <div className="coin-line">
-              <Coins size={21} />
-              <strong>{profile?.super_coins ?? 0}</strong>
-              <span>Super Coins</span>
+            <div className="profile-card-body">
+              <div className="profile-identity">
+                <span className="profile-avatar">
+                  {profile?.display_name.charAt(0).toUpperCase() || "L"}
+                  <ProfileBadge id={profile?.selected_profile_item_id} />
+                </span>
+                <div>
+                  <h2>{profile?.display_name}<ProfileBadge id={profile?.selected_profile_item_id} inline /></h2>
+                  <p>Your LockIn space</p>
+                </div>
+              </div>
+              <div className="coin-line">
+                <Coins size={21} />
+                <strong>{profile?.super_coins ?? 0}</strong>
+                <span>Super Coins</span>
+              </div>
+              <Button variant="secondary" className="profile-edit-button" aria-expanded={appearanceOpen} onClick={() => setAppearanceOpen((open) => !open)}>
+                <Pencil size={15} /> {appearanceOpen ? "Close appearance editor" : "Edit badge & banner"}
+              </Button>
             </div>
           </Panel>
-          {stats && (
+          {!appearanceLoading && ownedBadges.length > 0 && <Panel className="profile-owned-badges">
+            <div className="section-title">
+              <h2>Your badges</h2>
+              <Button variant="ghost" onClick={() => setAppearanceOpen(true)}>Edit badges</Button>
+            </div>
+            <div className="profile-owned-list">
+              {ownedBadges.map((item) => <span key={item.id} className="profile-owned-badge">
+                <ProfileBadge id={item.id} inline />
+                <span>{item.name}</span>
+                <small>{profile?.selected_profile_item_id === item.id ? "Equipped" : "Owned"}</small>
+              </span>)}
+            </div>
+          </Panel>}
+          {appearanceOpen && <Panel className="profile-appearance-editor">
+            <h2>Edit your appearance</h2>
+            {appearanceError && <Message tone="error">{appearanceError}</Message>}
+            {appearanceNotice && <Message tone="success">{appearanceNotice}</Message>}
+            {appearanceLoading ? <Loading label="Loading your collection…" /> : <>
+              <div className="appearance-group">
+                <h3>Profile banner</h3>
+                <div className="appearance-options">
+                  {[{ id: null, name: "LockIn original" }, ...ownedThemes].map((item) => {
+                    const selected = item.id ? profile?.selected_theme === item.id : profile?.selected_theme === "default";
+                    return <button type="button" key={item.id ?? "default"} className={`appearance-option${selected ? " selected" : ""}`} disabled={appearanceBusy || selected} onClick={() => void setAppearance(item.id, "THEME")}>
+                      <span className={`appearance-swatch store-preview-${themeKind(item.id)}`} aria-hidden="true" />
+                      <span>{item.name}</span>
+                      {selected && <Check size={16} aria-label="Selected" />}
+                    </button>;
+                  })}
+                </div>
+              </div>
+              <div className="appearance-group">
+                <h3>Badge</h3>
+                <div className="appearance-options">
+                  <button type="button" className={`appearance-option${!profile?.selected_profile_item_id ? " selected" : ""}`} disabled={appearanceBusy || !profile?.selected_profile_item_id} onClick={() => void setAppearance(null, "PROFILE")}>
+                    <span className="appearance-badge-empty" aria-hidden="true">—</span><span>No badge</span>
+                    {!profile?.selected_profile_item_id && <Check size={16} aria-label="Selected" />}
+                  </button>
+                  {ownedBadges.map((item) => {
+                    const selected = profile?.selected_profile_item_id === item.id;
+                    return <button type="button" key={item.id} className={`appearance-option${selected ? " selected" : ""}`} disabled={appearanceBusy || selected} onClick={() => void setAppearance(item.id, "PROFILE")}>
+                      <ProfileBadge id={item.id} inline /><span>{item.name}</span>
+                      {selected && <Check size={16} aria-label="Selected" />}
+                    </button>;
+                  })}
+                </div>
+                {ownedBadges.length === 0 && <p>Badges you unlock in the store will appear here.</p>}
+              </div>
+              <Link className="inline-link" to={ROUTES.store}>Browse more styles <ArrowRight size={16} /></Link>
+            </>}
+            {appearanceError && !appearanceLoading && <Button variant="ghost" onClick={() => setAppearanceReload((value) => value + 1)}>Retry collection</Button>}
+          </Panel>}
+          {loadingStats ? <Loading label="Loading profile statistics…" /> : stats && (
             <Panel className="profile-metrics">
               <div>
                 <strong>{stats.completedChallenges}</strong>
@@ -277,7 +398,7 @@ export function ProfilePage() {
           </Panel>
           <Panel className="account-panel">
             <h2>Recent rewards</h2>
-            {stats?.rewards.length ? (
+            {loadingStats ? <Loading label="Loading recent rewards…" /> : stats?.rewards.length ? (
               <div className="reward-list">
                 {stats.rewards.map((reward, index) => (
                   <div key={`${reward.created_at}-${index}`}>
@@ -286,9 +407,9 @@ export function ProfilePage() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : !error ? (
               <p className="muted">Complete habits to earn your first coins.</p>
-            )}
+            ) : <p className="muted">Recent rewards are unavailable.</p>}
           </Panel>
         </div>
       </div>
@@ -333,8 +454,17 @@ export function StorePage() {
     try {
       await catalogApi.purchase(item.id);
       setOwned((current) => [...current, item.id]);
+      try {
+        if (item.category === "THEME") await catalogApi.setTheme(item.id);
+        if (item.category === "PROFILE" || item.category === "INTERFACE")
+          await catalogApi.setCosmetic(item.id, item.category);
+      } catch {
+        await refreshProfile();
+        setNotice(`${item.name} unlocked. You can equip it from ${item.category === "INTERFACE" ? "the store" : "your profile or the store"}.`);
+        return;
+      }
       await refreshProfile();
-      setNotice(`${item.name} added to your collection.`);
+      setNotice(`${item.name} unlocked and equipped.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not complete purchase.");
     } finally {
@@ -390,7 +520,7 @@ export function StorePage() {
       {notice && <Message tone="success">{notice}</Message>}
       <div className="store-section-heading">
         <div><span className="eyebrow">Personalize your space</span><h2>The collection</h2></div>
-        <span>{items.length + 1} items</span>
+        <span>{visibleItems.length + (category === "ALL" || category === "THEME" ? 1 : 0)} items</span>
       </div>
       <div className="store-filters" role="group" aria-label="Filter store items">
         {([ ["ALL", "All items"], ["THEME", "Themes"], ["PROFILE", "Badges"], ["INTERFACE", "Dashboard effects"] ] as const).map(([value, label]) => (
@@ -399,7 +529,7 @@ export function StorePage() {
       </div>
       {loading ? <Loading label="Loading the store…" /> : error && items.length === 0 ? (
         <Empty title="Store could not load">Check your connection and try again.<Button variant="secondary" onClick={() => setReload((value) => value + 1)}>Retry loading</Button></Empty>
-      ) : items.length === 0 ? (
+      ) : visibleItems.length === 0 && category !== "ALL" && category !== "THEME" ? (
         <Empty title="The collection is empty">New items will appear here when they are available.</Empty>
       ) : (
         <div className="store-grid">
